@@ -1,0 +1,17 @@
+# Ignore system files
+AppData/
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.env/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Other
+.DS_Store
