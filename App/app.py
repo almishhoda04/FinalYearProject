@@ -1,11 +1,23 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import os
 import joblib
 
+model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'rf.pkl')
 # Load the saved model
-model = joblib.load("rf.pkl")
-
+model = joblib.load(model_path)
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background: linear-gradient(135deg, #a8dadc, #457b9d);
+        color: #1a1a1a;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 st.title("Liver Disease Prediction")
 
 st.write("Enter patient details to check if they have liver disease.")
