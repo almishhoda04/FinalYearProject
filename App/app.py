@@ -4,7 +4,7 @@ import numpy as np
 import os
 import joblib
 
-model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'rf.pkl')
+model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'rf_pipeline.pkl')
 # Load the saved model
 model = joblib.load(model_path)
 st.markdown(
@@ -34,14 +34,36 @@ total_proteins = st.number_input("Total Proteins", min_value=0.0, step=0.1)
 albumin = st.number_input("ALB Albumin", min_value=0.0, step=0.1)
 ag_ratio = st.number_input("A/G Ratio Albumin and Globulin Ratio", min_value=0.0, step=0.1)
 
-# Convert gender to numeric (if needed)
+# Convert gender to numeric 
 gender_num = 1 if gender == "Male" else 0
 
 # Predict button
 if st.button("Predict"):
-    input_data = np.array([[age, gender_num, total_bilirubin, direct_bilirubin, alk_phos, sgpt, sgot, total_proteins, albumin, ag_ratio]])
-    prediction = model.predict(input_data)[0]
-    
+    # Match training column names exactly
+    input_df = pd.DataFrame([[
+    age,
+    total_bilirubin,
+    direct_bilirubin,
+    alk_phos,
+    sgpt,
+    sgot,
+    total_proteins,
+    albumin,
+    ag_ratio,
+    gender_num
+]], columns=[
+    'Age of the patient', 
+    'Total Bilirubin', 
+    'Direct Bilirubin', 
+    'Alkphos Alkaline Phosphotase', 
+    'Sgpt Alamine Aminotransferase', 
+    'Sgot Aspartate Aminotransferase', 
+    'Total Protiens', 
+    'ALB Albumin', 
+    'A/G Ratio Albumin and Globulin Ratio', 
+    'Gender'
+])
+    prediction = model.predict(input_df)[0]
     if prediction == 1:
         st.error("The patient is likely to have liver disease.")
     else:
