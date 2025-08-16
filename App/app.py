@@ -4,7 +4,7 @@ import numpy as np
 import os
 import joblib
 
-model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'rf_pipeline.pkl')
+model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'rf_model.joblib')
 # Load the saved model
 model = joblib.load(model_path)
 st.markdown(
@@ -64,7 +64,10 @@ if st.button("Predict"):
     'Gender'
 ])
     prediction = model.predict(input_df)[0]
+    probabilities = model.predict_proba(input_df)[0]
+    disease_probability = probabilities[1]
+    percentage = round(disease_probability * 100, 2)
     if prediction == 1:
-        st.error("The patient is likely to have liver disease.")
+        st.error(f"The patient is likely to have liver disease with a {percentage}% probability.")
     else:
-        st.success("The patient is unlikely to have liver disease.")
+        st.success(f"The patient is unlikely to have liver disease. (Probability of disease: {percentage}%)")
