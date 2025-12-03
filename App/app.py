@@ -28,7 +28,7 @@ gender = st.selectbox("Gender", ["Male", "Female"])
 total_bilirubin = st.number_input("Total Bilirubin", min_value=0.0, step=0.1)
 direct_bilirubin = st.number_input("Direct Bilirubin", min_value=0.0, step=0.1)
 alk_phos = st.number_input("Alkphos Alkaline Phosphotase", min_value=0.0, step=0.1)
-sgpt = st.number_input("Sgpt Alamine Aminotransferase", min_value=0.0, step=0.1)
+sgpt = st.number_input("Sgpt Alanine Aminotransferase", min_value=0.0, step=0.1)
 sgot = st.number_input("Sgot Aspartate Aminotransferase", min_value=0.0, step=0.1)
 total_proteins = st.number_input("Total Proteins", min_value=0.0, step=0.1)
 albumin = st.number_input("ALB Albumin", min_value=0.0, step=0.1)
@@ -56,7 +56,7 @@ if st.button("Predict"):
     'Total Bilirubin', 
     'Direct Bilirubin', 
     'Alkphos Alkaline Phosphotase', 
-    'Sgpt Alamine Aminotransferase', 
+    'Sgpt Alanine Aminotransferase', 
     'Sgot Aspartate Aminotransferase', 
     'Total Protiens', 
     'ALB Albumin', 
