@@ -4,7 +4,7 @@ import numpy as np
 import os
 import joblib
 
-model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'rf_model.joblib')
+model_path = os.path.join(os.path.dirname(__file__), '..', 'Models', 'rf_model.joblib')
 # Load the saved model
 model = joblib.load(model_path)
 st.markdown(
