@@ -1,73 +1,149 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import os
 import joblib
+import os
 
-model_path = os.path.join(os.path.dirname(__file__), '..', 'Models', 'rf_model.joblib')
-# Load the saved model
-model = joblib.load(model_path)
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background: linear-gradient(135deg, #a8dadc, #457b9d);
-        color: #1a1a1a;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
+# -------------------------------
+# Load Models
+# -------------------------------
+
+BASE_DIR = os.path.dirname(__file__)
+MODEL_DIR = os.path.join(BASE_DIR, "..", "Models")
+
+rf = joblib.load(os.path.join(MODEL_DIR, "rf_base.pkl"))
+xgb = joblib.load(os.path.join(MODEL_DIR, "xgb_base.pkl"))
+mlp = joblib.load(os.path.join(MODEL_DIR, "mlp_base.pkl"))
+meta = joblib.load(os.path.join(MODEL_DIR, "meta_model.pkl"))
+
+# -------------------------------
+# Streamlit UI
+# -------------------------------
+
+st.set_page_config(
+    page_title="Liver Disease Prediction",
+    page_icon="🩺",
+    layout="centered"
 )
-st.title("Liver Disease Prediction")
 
-st.write("Enter patient details to check if they have liver disease.")
+st.title("🩺 Liver Disease Prediction using SCEM")
 
-# Example input fields
-age = st.number_input("Age of the patient", min_value=1, max_value=100)
-gender = st.selectbox("Gender", ["Male", "Female"])
-total_bilirubin = st.number_input("Total Bilirubin", min_value=0.0, step=0.1)
-direct_bilirubin = st.number_input("Direct Bilirubin", min_value=0.0, step=0.1)
-alk_phos = st.number_input("Alkphos Alkaline Phosphotase", min_value=0.0, step=0.1)
-sgpt = st.number_input("Sgpt Alanine Aminotransferase", min_value=0.0, step=0.1)
-sgot = st.number_input("Sgot Aspartate Aminotransferase", min_value=0.0, step=0.1)
-total_proteins = st.number_input("Total Proteins", min_value=0.0, step=0.1)
-albumin = st.number_input("ALB Albumin", min_value=0.0, step=0.1)
-ag_ratio = st.number_input("A/G Ratio Albumin and Globulin Ratio", min_value=0.0, step=0.1)
+st.write(
+    "Enter the patient's clinical details below to predict the likelihood of liver disease."
+)
 
-# Convert gender to numeric 
+# -------------------------------
+# Input Fields
+# -------------------------------
+
+age = st.number_input("Age", min_value=1, max_value=100)
+
+gender = st.selectbox(
+    "Gender",
+    ["Male", "Female"]
+)
+
+total_bilirubin = st.number_input(
+    "Total Bilirubin",
+    min_value=0.0,
+    step=0.1
+)
+
+direct_bilirubin = st.number_input(
+    "Direct Bilirubin",
+    min_value=0.0,
+    step=0.1
+)
+
+alk = st.number_input(
+    "Alkaline Phosphotase",
+    min_value=0.0,
+    step=0.1
+)
+
+sgpt = st.number_input(
+    "SGPT",
+    min_value=0.0,
+    step=0.1
+)
+
+sgot = st.number_input(
+    "SGOT",
+    min_value=0.0,
+    step=0.1
+)
+
+protein = st.number_input(
+    "Total Proteins",
+    min_value=0.0,
+    step=0.1
+)
+
+albumin = st.number_input(
+    "Albumin",
+    min_value=0.0,
+    step=0.1
+)
+
+ag = st.number_input(
+    "Albumin / Globulin Ratio",
+    min_value=0.0,
+    step=0.1
+)
+
 gender_num = 1 if gender == "Male" else 0
 
-# Predict button
+# -------------------------------
+# Prediction
+# -------------------------------
+
 if st.button("Predict"):
-    # Match training column names exactly
+
     input_df = pd.DataFrame([[
-    age,
-    total_bilirubin,
-    direct_bilirubin,
-    alk_phos,
-    sgpt,
-    sgot,
-    total_proteins,
-    albumin,
-    ag_ratio,
-    gender_num
-]], columns=[
-    'Age of the patient', 
-    'Total Bilirubin', 
-    'Direct Bilirubin', 
-    'Alkphos Alkaline Phosphotase', 
-    'Sgpt Alanine Aminotransferase', 
-    'Sgot Aspartate Aminotransferase', 
-    'Total Protiens', 
-    'ALB Albumin', 
-    'A/G Ratio Albumin and Globulin Ratio', 
-    'Gender'
-])
-    prediction = model.predict(input_df)[0]
-    probabilities = model.predict_proba(input_df)[0]
-    disease_probability = probabilities[1]
-    percentage = round(disease_probability * 100, 2)
-    if prediction == 1:
-        st.error(f"The patient is likely to have liver disease with a {percentage}% probability.")
+        age,
+        total_bilirubin,
+        direct_bilirubin,
+        alk,
+        sgpt,
+        sgot,
+        protein,
+        albumin,
+        ag,
+        gender_num
+    ]],
+    columns=[
+        "Age of the patient",
+        "Total Bilirubin",
+        "Direct Bilirubin",
+        "Alkphos Alkaline Phosphotase",
+        "Sgpt Alanine Aminotransferase",
+        "Sgot Aspartate Aminotransferase",
+        "Total Protiens",
+        "ALB Albumin",
+        "A/G Ratio Albumin and Globulin Ratio",
+        "Gender"
+    ])
+
+    # Base Model Predictions
+    rf_prob = rf.predict_proba(input_df)[:, 1]
+    xgb_prob = xgb.predict_proba(input_df)[:, 1]
+    mlp_prob = mlp.predict_proba(input_df)[:, 1]
+
+    meta_input = pd.DataFrame({
+        "RF": rf_prob,
+        "XGB": xgb_prob,
+        "MLP": mlp_prob
+    })
+
+    final_prob = meta.predict_proba(meta_input)[0][1]
+    final_pred = meta.predict(meta_input)[0]
+
+    disease_prob = final_prob * 100
+    healthy_prob = (1 - final_prob) * 100
+
+    if final_pred == 1:
+        st.error("⚠ Liver Disease Detected")
     else:
-        st.success(f"The patient is unlikely to have liver disease. (Probability of disease: {percentage}%)")
+        st.success("✅ No Liver Disease Detected")
+
+    st.write(f"**Probability of Liver Disease:** {disease_prob:.2f}%")
+    st.write(f"**Probability of Healthy:** {healthy_prob:.2f}%")

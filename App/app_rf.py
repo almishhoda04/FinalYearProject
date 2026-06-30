@@ -1,0 +1,73 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import os
+import joblib
+
+model_path = os.path.join(os.path.dirname(__file__), '..', 'Models', 'rf_model.joblib')
+# Load the saved model
+model = joblib.load(model_path)
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background: linear-gradient(135deg, #a8dadc, #457b9d);
+        color: #1a1a1a;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+st.title("Liver Disease Prediction")
+
+st.write("Enter patient details to check if they have liver disease.")
+
+# Example input fields
+age = st.number_input("Age of the patient", min_value=1, max_value=100)
+gender = st.selectbox("Gender", ["Male", "Female"])
+total_bilirubin = st.number_input("Total Bilirubin", min_value=0.0, step=0.1)
+direct_bilirubin = st.number_input("Direct Bilirubin", min_value=0.0, step=0.1)
+alk_phos = st.number_input("Alkphos Alkaline Phosphotase", min_value=0.0, step=0.1)
+sgpt = st.number_input("Sgpt Alanine Aminotransferase", min_value=0.0, step=0.1)
+sgot = st.number_input("Sgot Aspartate Aminotransferase", min_value=0.0, step=0.1)
+total_proteins = st.number_input("Total Proteins", min_value=0.0, step=0.1)
+albumin = st.number_input("ALB Albumin", min_value=0.0, step=0.1)
+ag_ratio = st.number_input("A/G Ratio Albumin and Globulin Ratio", min_value=0.0, step=0.1)
+
+# Convert gender to numeric 
+gender_num = 1 if gender == "Male" else 0
+
+# Predict button
+if st.button("Predict"):
+    # Match training column names exactly
+    input_df = pd.DataFrame([[
+    age,
+    total_bilirubin,
+    direct_bilirubin,
+    alk_phos,
+    sgpt,
+    sgot,
+    total_proteins,
+    albumin,
+    ag_ratio,
+    gender_num
+]], columns=[
+    'Age of the patient', 
+    'Total Bilirubin', 
+    'Direct Bilirubin', 
+    'Alkphos Alkaline Phosphotase', 
+    'Sgpt Alanine Aminotransferase', 
+    'Sgot Aspartate Aminotransferase', 
+    'Total Protiens', 
+    'ALB Albumin', 
+    'A/G Ratio Albumin and Globulin Ratio', 
+    'Gender'
+])
+    prediction = model.predict(input_df)[0]
+    probabilities = model.predict_proba(input_df)[0]
+    disease_probability = probabilities[1]
+    percentage = round(disease_probability * 100, 2)
+    if prediction == 1:
+        st.error(f"The patient is likely to have liver disease with a {percentage}% probability.")
+    else:
+        st.success(f"The patient is unlikely to have liver disease. (Probability of disease: {percentage}%)")
